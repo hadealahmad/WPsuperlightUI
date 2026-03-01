@@ -44,7 +44,7 @@
                         <i data-lucide="moon" id="dark-icon" class="w-3.5 h-3.5 text-muted-foreground"></i>
                         <span id="dark-label">ليلي</span>
                     </button>
-                    <a href="#settings" id="settings-btn"
+                    <a href="#settings" id="settings-btn" aria-label="الإعدادات"
                         class="hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
                         <i data-lucide="settings" class="w-3.5 h-3.5 text-muted-foreground"></i>
                     </a>
@@ -59,23 +59,23 @@
                     <div class="h-10 w-full bg-muted rounded-md animate-pulse mb-1"></div>
                 </ul>
 
-                <ul class="flex flex-col gap-1.5 text-sm font-medium mt-4">
-                    <li class="px-2.5 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                <div class="flex flex-col gap-1.5 text-sm font-medium mt-4">
+                    <span class="px-2.5 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
                         التصنيفات
-                    </li>
-                    <div id="dynamic-nav" class="flex flex-col gap-1">
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                        <div class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></div>
-                    </div>
-                </ul>
+                    </span>
+                    <ul id="dynamic-nav" class="flex flex-col gap-1">
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                        <li class="h-8 w-full bg-muted rounded-md animate-pulse mb-1"></li>
+                    </ul>
+                </div>
             </nav>
 
             <!-- Bottom Actions -->
@@ -99,6 +99,7 @@
                 </div>
 
                 <a href="https://github.com/hadealahmad/WPsuperlightUI" target="_blank"
+                    aria-label="مستودع جيت هاب للمشروع"
                     class="w-8 h-8 flex items-center justify-center rounded-md border border-border bg-secondary/30 hover:bg-secondary transition-all text-muted-foreground hover:text-foreground">
                     <i data-lucide="github" class="w-4 h-4"></i>
                 </a>

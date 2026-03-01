@@ -335,10 +335,12 @@ function init() {
 async function renderDynamicSidebar() {
     const cats = await fetchCategories();
     dynamicNav.innerHTML = cats.map(cat => `
-        <a href="#category/${cat.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group">
-            <span>${cat.name}</span>
-            <span class="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">${cat.count}</span>
-        </a>
+        <li>
+            <a href="#category/${cat.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group">
+                <span>${cat.name}</span>
+                <span class="text-[10px] text-foreground bg-secondary px-1.5 py-0.5 rounded-full">${cat.count}</span>
+            </a>
+        </li>
     `).join('');
     initIcons(); // Initialize icons for new categories if any
 }
