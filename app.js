@@ -29,6 +29,7 @@ const ICON_PATHS = {
     'arrow-left': '<path d="m12 19-7-7 7-7" /><path d="M19 12H5" />',
     'arrow-right': '<path d="m12 5 7 7-7 7" /><path d="M5 12h14" />',
     'file-text': '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" />',
+    'list': '<line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" />',
     'message-circle': '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />',
     'file': '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" />',
     'moon': '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
@@ -47,8 +48,7 @@ const syncUI = () => {
     document.documentElement.classList.toggle('dark', state.dark);
     $('minimal-icon').dataset.lucide = state.minimal ? 'image-off' : 'image';
     $('dark-icon').dataset.lucide = state.dark ? 'sun' : 'moon';
-    $('dark-label').textContent = state.dark ? 'نهاري' : 'ليلي';
-    $('text-label').textContent = state.simple ? 'بسيط' : 'كامل';
+    $('text-icon').dataset.lucide = state.simple ? 'list' : 'file-text';
     initIcons();
 };
 
@@ -76,7 +76,6 @@ const router = async () => {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.getAttribute('href') === location.hash));
 
     if (type === 'settings') return renderSettings();
-    if (type === 'about') return renderAbout();
     if (type === 'category') return renderArchive({ categories: id }, 'posts');
 
     const pt = CONFIG.postTypes.find(t => t.type === type)?.type || 'posts';
@@ -140,9 +139,10 @@ const renderSingle = async (id, pt) => {
             <header class="flex flex-col gap-6 mb-12">
                 <a href="#${pt}" class="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground group"><i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>العودة</a>
                 <h1 class="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] text-foreground">${p.title.rendered}</h1>
-                <div class="flex items-center gap-6 text-sm font-semibold text-muted-foreground uppercase tracking-widest border-b pb-8">
-                    <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i>${fmtDate(p.date)}</span>
-                    <span class="flex items-center gap-2"><i data-lucide="tag" class="w-4 h-4"></i>${p._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span>
+                <div class="flex items-center gap-4 text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-widest border-b pb-8">
+                    <time>${fmtDate(p.date)}</time>
+                    <span>•</span>
+                    <span>${p._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span>
                 </div>
             </header>
             ${img ? `<div class="mb-12 rounded-2xl overflow-hidden border shadow-xl bg-muted aspect-video md:aspect-[21/9]"><img src="${img}" class="w-full h-full object-cover"></div>` : ''}
@@ -151,10 +151,7 @@ const renderSingle = async (id, pt) => {
     initIcons();
 };
 
-function renderAbout() {
-    $('app').innerHTML = `<article><h1 class="text-5xl font-black tracking-tighter mb-10">عن الموقع</h1><div class="prose text-xl leading-relaxed space-y-8"><p>مساحة بسيطة لقراءة المحتوى المنشور على ووردبريس، بعيداً عن التعقيدات التقنية.</p></div><a href="#" class="mt-12 inline-flex items-center gap-2 font-bold underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all"><i data-lucide="arrow-right" class="w-4 h-4"></i>العودة</a></article>`;
-    initIcons();
-}
+
 
 function renderSettings() {
     $('app').innerHTML = `<article class="max-w-2xl mx-auto"><h1 class="text-5xl font-black tracking-tighter mb-10">إعدادات القارئ</h1><div class="space-y-8">

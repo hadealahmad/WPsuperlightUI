@@ -34,24 +34,21 @@
 
                 <!-- Control Toggles -->
                 <div class="flex items-center gap-2">
-                    <button id="toggle-minimal"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all text-[11px] font-bold border border-transparent hover:border-border">
-                        <i data-lucide="image" id="minimal-icon" class="w-3.5 h-3.5 text-muted-foreground"></i>
-                        <span>الصور</span>
+                    <button id="toggle-minimal" title="الصور"
+                        class="flex items-center justify-center w-9 h-9 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
+                        <i data-lucide="image" id="minimal-icon" class="w-4 h-4 text-muted-foreground"></i>
                     </button>
-                    <button id="toggle-text"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all text-[11px] font-bold border border-transparent hover:border-border">
-                        <i data-lucide="file-text" id="text-icon" class="w-3.5 h-3.5 text-muted-foreground"></i>
-                        <span id="text-label">كامل</span>
+                    <button id="toggle-text" title="كامل/بسيط"
+                        class="flex items-center justify-center w-9 h-9 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
+                        <i data-lucide="file-text" id="text-icon" class="w-4 h-4 text-muted-foreground"></i>
                     </button>
-                    <button id="toggle-dark"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all text-[11px] font-bold border border-transparent hover:border-border">
-                        <i data-lucide="moon" id="dark-icon" class="w-3.5 h-3.5 text-muted-foreground"></i>
-                        <span id="dark-label">ليلي</span>
+                    <button id="toggle-dark" title="الوضع الليلي"
+                        class="flex items-center justify-center w-9 h-9 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
+                        <i data-lucide="moon" id="dark-icon" class="w-4 h-4 text-muted-foreground"></i>
                     </button>
-                    <a href="#settings" id="settings-btn" aria-label="الإعدادات"
-                        class="hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
-                        <i data-lucide="settings" class="w-3.5 h-3.5 text-muted-foreground"></i>
+                    <a href="#settings" id="settings-btn" aria-label="الإعدادات" title="الإعدادات"
+                        class="hidden flex items-center justify-center w-9 h-9 rounded-full bg-secondary/30 hover:bg-secondary/50 transition-all border border-transparent hover:border-border">
+                        <i data-lucide="settings" class="w-4 h-4 text-muted-foreground"></i>
                     </a>
                 </div>
             </div>
@@ -85,17 +82,6 @@
 
             <!-- Bottom Actions -->
             <div class="mt-auto flex flex-col gap-4 pt-6 border-t border-dashed">
-                <!-- About link moved here -->
-                <ul class="flex flex-col gap-1.5 text-sm font-medium">
-                    <li>
-                        <a href="#about"
-                            class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent hover:text-accent-foreground group opacity-70 hover:opacity-100">
-                            <i data-lucide="info" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i>
-                            <span>عن الموقع</span>
-                        </a>
-                    </li>
-                </ul>
-
                 <!-- Credits -->
                 <div class="text-[10px] text-muted-foreground leading-loose">
                     <p>واجهة ووردبريس مفصولة فائقة الخفّة من <a href="https://hadealahmad.com" target="_blank"
@@ -104,9 +90,9 @@
                 </div>
 
                 <a href="https://github.com/hadealahmad/WPsuperlightUI" target="_blank"
-                    aria-label="مستودع جيت هاب للمشروع"
-                    class="w-8 h-8 flex items-center justify-center rounded-md border border-border bg-secondary/30 hover:bg-secondary transition-all text-muted-foreground hover:text-foreground">
+                    class="flex items-center justify-center gap-2 px-3 h-9 rounded-md border border-border bg-secondary/30 hover:bg-secondary transition-all text-xs font-bold text-muted-foreground hover:text-foreground">
                     <i data-lucide="github" class="w-4 h-4"></i>
+                    <span>حول المشروع</span>
                 </a>
             </div>
         </aside>
