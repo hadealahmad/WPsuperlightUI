@@ -14,6 +14,7 @@ const $ = id => document.getElementById(id);
 const state = {
     minimal: localStorage.getItem('minimalMode') !== 'false',
     dark: localStorage.getItem('darkMode') === 'true',
+    simple: localStorage.getItem('simpleMode') !== 'false',
     page: 1, hasMore: true, cats: {}
 };
 
@@ -47,11 +48,16 @@ const syncUI = () => {
     $('minimal-icon').dataset.lucide = state.minimal ? 'image-off' : 'image';
     $('dark-icon').dataset.lucide = state.dark ? 'sun' : 'moon';
     $('dark-label').textContent = state.dark ? 'نهاري' : 'ليلي';
+    $('text-label').textContent = state.simple ? 'بسيط' : 'كامل';
     initIcons();
 };
 
 const wp = async (path, params = {}) => {
     try {
+        const fields = params._fields ? params._fields.split(',') : [];
+        if (state.simple && fields.includes('excerpt')) {
+            params._fields = fields.filter(f => f !== 'excerpt').join(',');
+        }
         const r = await fetch(`${CONFIG.v2Url}/${path}?` + new URLSearchParams({ per_page: CONFIG.perPage, ...params }));
         if (!r.ok) return null;
         const total = r.headers.get('X-WP-TotalPages');
@@ -80,28 +86,33 @@ const router = async () => {
 const renderArchive = async (opts, pt, append = false) => {
     if (!append) {
         state.page = 1;
-        $('app').innerHTML = `<div class="space-y-20">${Array(3).fill('<div class="space-y-6"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-12 w-full bg-muted rounded"></div><div class="h-64 w-full bg-muted rounded-xl"></div></div>').join('')}</div>`;
+        const skeleton = state.simple
+            ? '<div class="space-y-4"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-8 w-full bg-muted rounded"></div></div>'
+            : '<div class="space-y-6"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-12 w-full bg-muted rounded"></div><div class="h-64 w-full bg-muted rounded-xl"></div></div>';
+        $('app').innerHTML = `<div class="${state.simple ? 'space-y-12' : 'space-y-20'}">${Array(3).fill(skeleton).join('')}</div>`;
     }
     const posts = await wp(pt, { ...opts, page: state.page, _fields: 'id,date,title,excerpt,categories,jetpack_featured_media_url' });
     if (!append && !posts?.length) return $('app').innerHTML = '<div class="py-20 text-center"><h2 class="text-2xl font-bold">لا توجد مقالات</h2></div>';
 
     const html = posts.map(p => `
-        <article class="post mb-20">
-            <header class="mb-4">
+        <article class="post ${state.simple ? 'mb-8' : 'mb-20'}">
+            <header class="${state.simple ? 'mb-2' : 'mb-4'}">
                 <div class="flex items-center gap-4 text-xs font-semibold text-muted-foreground mb-3 tracking-widest uppercase">
                     <time>${fmtDate(p.date)}</time>
                     ${state.cats[p.categories?.[0]] ? `<span>•</span><span>${state.cats[p.categories[0]]}</span>` : ''}
                 </div>
-                <h2 class="text-3xl font-black tracking-tighter leading-tight mb-6">
+                <h2 class="${state.simple ? 'text-xl' : 'text-3xl'} font-black tracking-tighter leading-tight ${state.simple ? 'mb-2' : 'mb-6'}">
                     <a href="#${pt}/${p.id}" class="hover:underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all">${p.title.rendered}</a>
                 </h2>
             </header>
             <div class="content">
-                ${!state.minimal && p.jetpack_featured_media_url ? `<div class="mb-8 rounded-xl overflow-hidden border shadow-sm aspect-video bg-muted"><img src="${p.jetpack_featured_media_url}" class="w-full h-full object-cover" loading="lazy"></div>` : ''}
-                <div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${p.excerpt.rendered}</div>
-                <a href="#${pt}/${p.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a>
+                ${!state.minimal && p.jetpack_featured_media_url && !state.simple ? `<div class="mb-8 rounded-xl overflow-hidden border shadow-sm aspect-video bg-muted"><img src="${p.jetpack_featured_media_url}" class="w-full h-full object-cover" loading="lazy"></div>` : ''}
+                ${!state.simple && p.excerpt ? `
+                    <div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${p.excerpt.rendered}</div>
+                    <a href="#${pt}/${p.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a>
+                ` : ''}
             </div>
-            <div class="w-20 h-px bg-border my-12"></div>
+            <div class="w-20 h-px bg-border ${state.simple ? 'my-8' : 'my-12'}"></div>
         </article>`).join('');
 
     if (append) {
@@ -177,17 +188,18 @@ const init = async () => {
     $('main-nav').innerHTML = CONFIG.postTypes.map(pt => `<li><a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent group"><i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i><span>${pt.label}</span></a></li>`).join('');
 
     $('toggle-minimal').onclick = () => { state.minimal = !state.minimal; localStorage.minimalMode = state.minimal; syncUI(); router(); };
+    $('toggle-text').onclick = () => { state.simple = !state.simple; localStorage.simpleMode = state.simple; syncUI(); router(); };
     $('toggle-dark').onclick = () => { state.dark = !state.dark; localStorage.darkMode = state.dark; syncUI(); };
 
-    syncUI();
-    window.onhashchange = router;
-
-    const [cats] = await Promise.all([wp('categories', { per_page: 20, hide_empty: true, _fields: 'id,name,count' }), router()]);
+    const cats = await wp('categories', { per_page: 20, hide_empty: true, _fields: 'id,name,count' });
     if (cats) {
         cats.forEach(c => state.cats[c.id] = c.name);
         $('dynamic-nav').innerHTML = cats.map(c => `<li><a href="#category/${c.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group"><span>${c.name}</span><span class="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">${c.count}</span></a></li>`).join('');
-        initIcons();
     }
+
+    syncUI();
+    window.onhashchange = router;
+    await router();
 };
 
 init();
