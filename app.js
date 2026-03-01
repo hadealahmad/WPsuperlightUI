@@ -7,20 +7,15 @@ const CONFIG = {
         { type: 'posts', label: 'المقالات', icon: 'file-text' },
         { type: 'answers', label: 'إجابات', icon: 'message-circle' }
     ],
-    readerMode: true // Set to true to allow user customization
+    readerMode: true
 };
 
-const app = document.getElementById('app');
-const mainNav = document.getElementById('main-nav');
-const dynamicNav = document.getElementById('dynamic-nav');
-const toggleMinimalBtn = document.getElementById('toggle-minimal');
-const minimalIcon = document.getElementById('minimal-icon');
-const siteTitleEl = document.getElementById('site-title');
-const siteTaglineEl = document.getElementById('site-tagline');
-const toggleDarkBtn = document.getElementById('toggle-dark');
-const darkIcon = document.getElementById('dark-icon');
-const darkLabel = document.getElementById('dark-label');
-const settingsBtn = document.getElementById('settings-btn');
+const $ = id => document.getElementById(id);
+const state = {
+    minimal: localStorage.getItem('minimalMode') !== 'false',
+    dark: localStorage.getItem('darkMode') === 'true',
+    page: 1, hasMore: true, cats: {}
+};
 
 const ICON_PATHS = {
     'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />',
@@ -41,309 +36,157 @@ const ICON_PATHS = {
     'settings': '<circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1V15a2 2 0 0 1-2-2 2 2 0 0 1 2-2v-.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2v.09a1.65 1.65 0 0 0-1.51 1z" />'
 };
 
-const initIcons = () => {
-    document.querySelectorAll('[data-lucide]').forEach(el => {
-        const iconName = el.getAttribute('data-lucide');
-        const paths = ICON_PATHS[iconName];
-        if (paths) {
-            el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
-        }
-    });
-};
+const initIcons = () => document.querySelectorAll('[data-lucide]').forEach(el => {
+    const p = ICON_PATHS[el.dataset.lucide];
+    if (p) el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+});
 
-let state = {
-    minimalMode: localStorage.getItem('minimalMode') !== 'false',
-    darkMode: localStorage.getItem('darkMode') === 'true',
-    currentRoute: '',
-    params: {},
-    categoriesMap: {},
-    page: 1,
-    hasMore: true
-};
-
-const updateMinimalUI = () => {
-    if (state.minimalMode) {
-        minimalIcon.setAttribute('data-lucide', 'image-off');
-        document.body.classList.add('minimal-mode');
-    } else {
-        minimalIcon.setAttribute('data-lucide', 'image');
-        document.body.classList.remove('minimal-mode');
-    }
+const syncUI = () => {
+    document.body.classList.toggle('minimal-mode', state.minimal);
+    document.documentElement.classList.toggle('dark', state.dark);
+    $('minimal-icon').dataset.lucide = state.minimal ? 'image-off' : 'image';
+    $('dark-icon').dataset.lucide = state.dark ? 'sun' : 'moon';
+    $('dark-label').textContent = state.dark ? 'نهاري' : 'ليلي';
     initIcons();
 };
 
-const updateDarkUI = () => {
-    if (state.darkMode) {
-        document.documentElement.classList.add('dark');
-        darkIcon.setAttribute('data-lucide', 'sun');
-        darkLabel.textContent = 'نهاري';
-    } else {
-        document.documentElement.classList.remove('dark');
-        darkIcon.setAttribute('data-lucide', 'moon');
-        darkLabel.textContent = 'ليلي';
-    }
-    initIcons();
+const wp = async (path, params = {}) => {
+    try {
+        const r = await fetch(`${CONFIG.v2Url}/${path}?` + new URLSearchParams({ per_page: CONFIG.perPage, ...params }));
+        if (!r.ok) return null;
+        const total = r.headers.get('X-WP-TotalPages');
+        if (total && params.page) state.hasMore = params.page < parseInt(total);
+        return r.json();
+    } catch { return null; }
 };
 
-toggleMinimalBtn.addEventListener('click', () => {
-    state.minimalMode = !state.minimalMode;
-    localStorage.setItem('minimalMode', state.minimalMode);
-    updateMinimalUI();
-    router();
-});
-
-toggleDarkBtn.addEventListener('click', () => {
-    state.darkMode = !state.darkMode;
-    localStorage.setItem('darkMode', state.darkMode);
-    updateDarkUI();
-});
-
-const parseHash = (hash) => {
-    const parts = hash.replace('#', '').split('/');
-    return { type: parts[0] || 'archive', id: parts[1] || null };
-};
+const fmtDate = d => new Date(d).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 
 const router = async () => {
-    const route = parseHash(window.location.hash);
-    state.currentRoute = route.type;
-    state.params = { id: route.id };
+    const [type = 'posts', id] = location.hash.replace('#', '').split('/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    Object.assign(state, { page: 1, hasMore: true });
 
-    // Reset pagination on route change
-    state.page = 1;
-    state.hasMore = true;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.getAttribute('href') === location.hash));
 
-    // Update nav active classes
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (type === 'settings') return renderSettings();
+    if (type === 'about') return renderAbout();
 
-    // Special static routes
-    if (route.type === 'settings') {
-        renderSettings();
-        return;
-    }
-    if (route.type === 'about') {
-        renderAbout();
-        return;
-    }
-
-    if (route.type === 'category') {
-        document.querySelector(`[href="#category/${route.id}"]`)?.classList.add('active');
-        await renderArchive({ categories: route.id }, 'posts');
-        return;
-    }
-
-    let postType = CONFIG.postTypes.find(pt => pt.type === route.type)?.type || 'posts';
-    document.querySelector(`[href="#${postType}"]`)?.classList.add('active');
-
-    if (route.id) {
-        await renderSingle(route.id, postType);
-    } else {
-        await renderArchive({}, postType);
-    }
+    const pt = CONFIG.postTypes.find(t => t.type === type)?.type || 'posts';
+    id ? await renderSingle(id, pt) : await renderArchive(type === 'category' ? { categories: id } : {}, pt);
 };
 
-function applySiteMeta() {
-    siteTitleEl.textContent = CONFIG.siteName;
-    siteTaglineEl.textContent = CONFIG.siteTagline;
-
-    // Update SEO Meta Tags
-    const seoTitle = document.getElementById('seo-title');
-    const seoDesc = document.getElementById('seo-description');
-    if (seoTitle) seoTitle.textContent = `${CONFIG.siteName} | ${CONFIG.siteTagline}`;
-    if (seoDesc) seoDesc.setAttribute('content', CONFIG.siteTagline);
-
-    // Reader mode button
-    if (CONFIG.readerMode) {
-        settingsBtn?.classList.remove('hidden');
-    } else {
-        settingsBtn?.classList.add('hidden');
+const renderArchive = async (opts, pt, append = false) => {
+    if (!append) {
+        state.page = 1;
+        $('app').innerHTML = `<div class="space-y-20">${Array(3).fill('<div class="space-y-6"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-12 w-full bg-muted rounded"></div><div class="h-64 w-full bg-muted rounded-xl"></div></div>').join('')}</div>`;
     }
-}
+    const posts = await wp(pt, { ...opts, page: state.page, _fields: 'id,date,title,excerpt,categories,jetpack_featured_media_url' });
+    if (!append && !posts?.length) return $('app').innerHTML = '<div class="py-20 text-center"><h2 class="text-2xl font-bold">لا توجد مقالات</h2></div>';
 
-async function fetchPosts(queryOptions = {}, customPostType = 'posts') {
-    try {
-        const params = new URLSearchParams({ per_page: CONFIG.perPage, page: state.page, ...queryOptions });
-        const response = await fetch(`${CONFIG.v2Url}/${customPostType}?${params.toString()}`);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const totalPages = parseInt(response.headers.get('X-WP-TotalPages')) || 1;
-        state.hasMore = state.page < totalPages;
-        return await response.json();
-    } catch (e) {
-        state.hasMore = false;
-        return [];
-    }
-}
-
-async function fetchCategories() {
-    try {
-        const response = await fetch(`${CONFIG.v2Url}/categories?per_page=20&hide_empty=true&_fields=id,name,count`);
-        if (!response.ok) return [];
-        const cats = await response.json();
-        cats.forEach(c => state.categoriesMap[c.id] = c.name);
-        return cats;
-    } catch (e) { return []; }
-}
-
-
-async function fetchSingle(id, postType = 'posts') {
-    try {
-        const response = await fetch(`${CONFIG.v2Url}/${postType}/${id}?_embed`);
-        return response.ok ? await response.json() : null;
-    } catch (e) { return null; }
-}
-
-async function renderArchive(options = {}, postType = 'posts', append = false) {
-    if (!append) { renderLoading(); state.page = 1; }
-    const posts = await fetchPosts({ ...options, _fields: 'id,date,title,excerpt,categories,jetpack_featured_media_url' }, postType);
-    if (!append && posts.length === 0) {
-        app.innerHTML = `<div class="py-20 text-center"><h2 class="text-2xl font-bold">لا توجد مقالات حالياً</h2></div>`;
-        return;
-    }
-    const postsHtml = posts.map(post => {
-        const featuredImage = post.jetpack_featured_media_url;
-        const date = new Date(post.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-        const categoryName = state.categoriesMap[post.categories?.[0]] || '';
-        return `<article class="post mb-20"><header class="mb-4"><div class="flex items-center gap-4 text-xs font-semibold text-muted-foreground mb-3 tracking-widest uppercase"><time>${date}</time>${categoryName ? `<span>•</span><span>${categoryName}</span>` : ''}</div><h2 class="text-3xl font-black tracking-tighter leading-tight mb-6"><a href="#${postType}/${post.id}" class="hover:underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all">${post.title.rendered}</a></h2></header><div class="content">${!state.minimalMode && featuredImage ? `<div class="mb-8 rounded-xl overflow-hidden border shadow-sm aspect-video bg-muted"><img src="${featuredImage}" class="w-full h-full object-cover" loading="lazy"></div>` : ''}<div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${post.excerpt.rendered}</div><a href="#${postType}/${post.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a></div><div class="w-20 h-px bg-border my-12"></div></article>`;
-    }).join('');
+    const html = posts.map(p => `
+        <article class="post mb-20">
+            <header class="mb-4">
+                <div class="flex items-center gap-4 text-xs font-semibold text-muted-foreground mb-3 tracking-widest uppercase">
+                    <time>${fmtDate(p.date)}</time>
+                    ${state.cats[p.categories?.[0]] ? `<span>•</span><span>${state.cats[p.categories[0]]}</span>` : ''}
+                </div>
+                <h2 class="text-3xl font-black tracking-tighter leading-tight mb-6">
+                    <a href="#${pt}/${p.id}" class="hover:underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all">${p.title.rendered}</a>
+                </h2>
+            </header>
+            <div class="content">
+                ${!state.minimal && p.jetpack_featured_media_url ? `<div class="mb-8 rounded-xl overflow-hidden border shadow-sm aspect-video bg-muted"><img src="${p.jetpack_featured_media_url}" class="w-full h-full object-cover" loading="lazy"></div>` : ''}
+                <div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${p.excerpt.rendered}</div>
+                <a href="#${pt}/${p.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a>
+            </div>
+            <div class="w-20 h-px bg-border my-12"></div>
+        </article>`).join('');
 
     if (append) {
-        document.getElementById('load-more-container')?.remove();
-        app.insertAdjacentHTML('beforeend', postsHtml);
+        $('load-more-container')?.remove();
+        $('app').insertAdjacentHTML('beforeend', html);
     } else {
-        app.innerHTML = postsHtml;
+        $('app').innerHTML = html;
     }
 
     if (state.hasMore) {
-        app.insertAdjacentHTML('beforeend', `<div id="load-more-container" class="py-10 flex justify-center"><button id="load-more-btn" class="px-8 py-3 rounded-full border border-border hover:bg-secondary transition-all font-bold text-sm">تحميل المزيد</button></div>`);
-        document.getElementById('load-more-btn').addEventListener('click', () => { state.page++; renderArchive(options, postType, true); });
+        $('app').insertAdjacentHTML('beforeend', '<div id="load-more-container" class="py-10 flex justify-center"><button id="load-more-btn" class="px-8 py-3 rounded-full border border-border hover:bg-secondary transition-all font-bold text-sm">تحميل المزيد</button></div>');
+        $('load-more-btn').onclick = () => { state.page++; renderArchive(opts, pt, true); };
     }
     initIcons();
-}
+};
 
-async function renderSingle(id, postType = 'posts') {
-    renderLoadingSingle();
-    const response = await fetch(`${CONFIG.v2Url}/${postType}/${id}?_embed&_fields=id,date,title,content,categories,jetpack_featured_media_url,_embedded`);
-    const post = response.ok ? await response.json() : null;
-    if (!post) {
-        app.innerHTML = `<div class="py-20 text-center"><h1 class="text-2xl font-bold">المقال غير موجود</h1><a href="#" class="button mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-md inline-block">العودة للرئيسية</a></div>`;
-        initIcons();
-        return;
-    }
-    const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || post.jetpack_featured_media_url;
-    const date = new Date(post.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    app.innerHTML = `<article class="max-w-none"><header class="flex flex-col gap-6 mb-12"><a href="#${postType}" class="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors group"><i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>العودة لـ ${CONFIG.postTypes.find(pt => pt.type === postType)?.label || 'الرئيسية'}</a><h1 class="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] text-foreground">${post.title.rendered}</h1><div class="flex items-center gap-6 text-sm font-semibold text-muted-foreground uppercase tracking-widest border-b pb-8"><div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i><span>${date}</span></div><div class="flex items-center gap-2"><i data-lucide="tag" class="w-4 h-4"></i><span>${post._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span></div></div></header>${featuredImage ? `<div class="mb-12 rounded-2xl overflow-hidden border shadow-xl bg-muted aspect-video md:aspect-[21/9]"><img src="${featuredImage}" class="w-full h-full object-cover" alt="${post.title.rendered}"></div>` : ''}<div class="prose dark:prose-invert">${post.content.rendered}</div></article>`;
+const renderSingle = async (id, pt) => {
+    $('app').innerHTML = `<div class="space-y-10"><div class="h-8 w-32 bg-muted rounded-md mb-6"></div><div class="h-20 w-full bg-muted rounded-md"></div><div class="w-full aspect-video bg-muted rounded-2xl mt-12"></div></div>`;
+    const p = await wp(`${pt}/${id}`, { _embed: 1, _fields: 'id,date,title,content,categories,jetpack_featured_media_url,_embedded' });
+    if (!p) return $('app').innerHTML = '<div class="py-20 text-center"><h1 class="text-2xl font-bold">غير موجود</h1><a href="#" class="button mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-md inline-block">العودة</a></div>';
+
+    const img = p._embedded?.['wp:featuredmedia']?.[0]?.source_url || p.jetpack_featured_media_url;
+    $('app').innerHTML = `
+        <article class="max-w-none">
+            <header class="flex flex-col gap-6 mb-12">
+                <a href="#${pt}" class="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground group"><i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>العودة</a>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] text-foreground">${p.title.rendered}</h1>
+                <div class="flex items-center gap-6 text-sm font-semibold text-muted-foreground uppercase tracking-widest border-b pb-8">
+                    <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i>${fmtDate(p.date)}</span>
+                    <span class="flex items-center gap-2"><i data-lucide="tag" class="w-4 h-4"></i>${p._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span>
+                </div>
+            </header>
+            ${img ? `<div class="mb-12 rounded-2xl overflow-hidden border shadow-xl bg-muted aspect-video md:aspect-[21/9]"><img src="${img}" class="w-full h-full object-cover"></div>` : ''}
+            <div class="prose dark:prose-invert">${p.content.rendered}</div>
+        </article>`;
     initIcons();
-}
-
-function renderLoading() {
-    app.innerHTML = `<div class="space-y-20">${Array(3).fill(`<div class="space-y-6"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-12 w-full bg-muted rounded"></div><div class="h-64 w-full bg-muted rounded-xl"></div></div>`).join('')}</div>`;
-}
-
-function renderLoadingSingle() {
-    app.innerHTML = `<div class="space-y-10"><div class="h-8 w-32 bg-muted rounded-md mb-6"></div><div class="h-20 w-full bg-muted rounded-md"></div><div class="w-full aspect-video bg-muted rounded-2xl mt-12"></div></div>`;
-}
+};
 
 function renderAbout() {
-    app.innerHTML = `<article><h1 class="text-5xl font-black tracking-tighter mb-10">عن الموقع</h1><div class="prose text-xl leading-relaxed space-y-8"><p>مساحة بسيطة لقراءة المحتوى المنشور على ووردبريس، بعيداً عن التعقيدات التقنية والزخارف البصرية الزائدة.</p><p>يهدف المشروع إلى توفير تجربة قراءة هادئة تركز على النص أولاً، مع استخدام تقنيات برمجية خفيفة جداً لضمان السرعة والبساطة.</p></div><a href="#" class="mt-12 inline-flex items-center gap-2 font-bold underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all"><i data-lucide="arrow-right" class="w-4 h-4"></i>العودة للتصفح</a></article>`;
+    $('app').innerHTML = `<article><h1 class="text-5xl font-black tracking-tighter mb-10">عن الموقع</h1><div class="prose text-xl leading-relaxed space-y-8"><p>مساحة بسيطة لقراءة المحتوى المنشور على ووردبريس، بعيداً عن التعقيدات التقنية.</p></div><a href="#" class="mt-12 inline-flex items-center gap-2 font-bold underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all"><i data-lucide="arrow-right" class="w-4 h-4"></i>العودة</a></article>`;
     initIcons();
 }
 
 function renderSettings() {
-    app.innerHTML = `
-        <article class="max-w-2xl mx-auto">
-            <h1 class="text-5xl font-black tracking-tighter mb-10">إعدادات القارئ</h1>
-            <div class="space-y-8">
-                <div class="space-y-3">
-                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">رابط الـ API (V2)</label>
-                    <input type="text" id="set-url" value="${CONFIG.v2Url}" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono text-sm focus:ring-2 ring-primary/20 outline-none transition-all">
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-3">
-                        <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">اسم الموقع</label>
-                        <input type="text" id="set-name" value="${CONFIG.siteName}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
-                    </div>
-                    <div class="space-y-3">
-                        <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">الوصف</label>
-                        <input type="text" id="set-tagline" value="${CONFIG.siteTagline}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
-                    </div>
-                </div>
-                <div class="space-y-3">
-                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">عدد النتائج (لكل صفحة)</label>
-                    <input type="number" id="set-perpage" value="${CONFIG.perPage}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
-                </div>
-                <div class="space-y-3">
-                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">أنواع المحتوى (JSON Array)</label>
-                    <textarea id="set-posttypes" rows="5" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono text-sm outline-none">${JSON.stringify(CONFIG.postTypes, null, 2)}</textarea>
-                </div>
-                <button id="save-settings" class="w-full bg-primary text-primary-foreground p-5 rounded-xl font-bold text-lg hover:shadow-lg transition-all">حفظ الإعدادات</button>
-            </div>
-            <p id="save-msg" class="mt-4 text-center text-sm font-bold text-green-500 hidden">تم الحفظ! سيتم إعادة تحميل الصفحة...</p>
-        </article>
-    `;
+    $('app').innerHTML = `<article class="max-w-2xl mx-auto"><h1 class="text-5xl font-black tracking-tighter mb-10">إعدادات القارئ</h1><div class="space-y-8">
+        <div class="space-y-3"><label class="text-sm font-bold text-muted-foreground uppercase tracking-widest">رابط الـ API</label><input type="text" id="set-url" value="${CONFIG.v2Url}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none"></div>
+        <div class="grid md:grid-cols-2 gap-6"><input type="text" id="set-name" value="${CONFIG.siteName}" class="p-4 rounded-xl border bg-secondary/30"><input type="text" id="set-tagline" value="${CONFIG.siteTagline}" class="p-4 rounded-xl border bg-secondary/30"></div>
+        <input type="number" id="set-perpage" value="${CONFIG.perPage}" class="w-full p-4 rounded-xl border bg-secondary/30">
+        <textarea id="set-posttypes" rows="5" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono">${JSON.stringify(CONFIG.postTypes, null, 2)}</textarea>
+        <button id="save-settings" class="w-full bg-primary text-primary-foreground p-5 rounded-xl font-bold text-lg hover:shadow-lg transition-all">حفظ</button>
+    </div><p id="save-msg" class="mt-4 text-center text-sm font-bold text-green-500 hidden">تم الحفظ!</p></article>`;
 
-    document.getElementById('save-settings').addEventListener('click', () => {
-        const newConfig = {
-            v2Url: document.getElementById('set-url').value,
-            siteName: document.getElementById('set-name').value,
-            siteTagline: document.getElementById('set-tagline').value,
-            perPage: parseInt(document.getElementById('set-perpage').value),
-            postTypes: JSON.parse(document.getElementById('set-posttypes').value)
-        };
-        localStorage.setItem('userConfig', JSON.stringify(newConfig));
-        document.getElementById('save-msg').classList.remove('hidden');
-        setTimeout(() => window.location.reload(), 1500);
-    });
+    $('save-settings').onclick = () => {
+        const conf = { v2Url: $('set-url').value, siteName: $('set-name').value, siteTagline: $('set-tagline').value, perPage: parseInt($('set-perpage').value), postTypes: JSON.parse($('set-posttypes').value) };
+        localStorage.setItem('userConfig', JSON.stringify(conf));
+        $('save-msg').classList.remove('hidden');
+        setTimeout(() => location.reload(), 1000);
+    };
 }
 
-function loadConfig() {
+const init = async () => {
     const saved = localStorage.getItem('userConfig');
-    if (saved) {
-        try {
-            const userConfig = JSON.parse(saved);
-            Object.assign(CONFIG, userConfig);
-        } catch (e) {
-            console.error('Failed to load user config');
-        }
+    if (saved) Object.assign(CONFIG, JSON.parse(saved));
+
+    $('site-title').textContent = CONFIG.siteName;
+    $('site-tagline').textContent = CONFIG.siteTagline;
+    $('settings-btn')?.classList.toggle('hidden', !CONFIG.readerMode);
+
+    const seoTitle = $('seo-title'), seoDesc = $('seo-description');
+    if (seoTitle) seoTitle.textContent = `${CONFIG.siteName} | ${CONFIG.siteTagline}`;
+    if (seoDesc) seoDesc.content = CONFIG.siteTagline;
+
+    $('main-nav').innerHTML = CONFIG.postTypes.map(pt => `<li><a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent group"><i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i><span>${pt.label}</span></a></li>`).join('');
+
+    $('toggle-minimal').onclick = () => { state.minimal = !state.minimal; localStorage.minimalMode = state.minimal; syncUI(); router(); };
+    $('toggle-dark').onclick = () => { state.dark = !state.dark; localStorage.darkMode = state.dark; syncUI(); };
+
+    syncUI();
+    window.onhashchange = router;
+
+    const [cats] = await Promise.all([wp('categories', { per_page: 20, hide_empty: true, _fields: 'id,name,count' }), router()]);
+    if (cats) {
+        cats.forEach(c => state.cats[c.id] = c.name);
+        $('dynamic-nav').innerHTML = cats.map(c => `<li><a href="#category/${c.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group"><span>${c.name}</span><span class="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">${c.count}</span></a></li>`).join('');
+        initIcons();
     }
-}
+};
 
-// --- Initialization Sequence (Priority Order) ---
-function init() {
-    loadConfig();      // 1. Load overrides
-    applySiteMeta();   // 2. Apply branding/SEO from Config
-    updateMinimalUI(); // 3. Set UI state (Images)
-    updateDarkUI();    // 4. Set UI state (Dark)
-
-    // 5. Render static UI from Config (Post Types)
-    mainNav.innerHTML = CONFIG.postTypes.map(pt => `
-        <li>
-            <a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent hover:text-accent-foreground group">
-                <i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i>
-                <span>${pt.label}</span>
-            </a>
-        </li>
-    `).join('');
-
-    initIcons(); // 6. Initialize all icons rendered so far
-
-    // 7. Setup listeners and start async fetches
-    window.addEventListener('hashchange', router);
-    renderDynamicSidebar(); // Fetch categories in background
-    router();               // Start routing/content fetch
-}
-
-async function renderDynamicSidebar() {
-    const cats = await fetchCategories();
-    dynamicNav.innerHTML = cats.map(cat => `
-        <li>
-            <a href="#category/${cat.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group">
-                <span>${cat.name}</span>
-                <span class="text-[10px] text-foreground bg-secondary px-1.5 py-0.5 rounded-full">${cat.count}</span>
-            </a>
-        </li>
-    `).join('');
-    initIcons(); // Initialize icons for new categories if any
-}
-
-// Start the engine
 init();

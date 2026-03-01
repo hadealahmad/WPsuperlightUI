@@ -17,7 +17,10 @@ built = built.replace(
     `<script type="module">${appMinJs}</script>`
 );
 
-// 3. Modest Minify (Collapse whitespaces except inside tags/strings)
+// 3. Strip HTML Comments
+built = built.replace(/<!--[\s\S]*?-->/g, '');
+
+// 4. Modest Minify (Collapse whitespaces except inside tags/strings)
 // We remove double spaces and newlines to keep it "Superlight"
 built = built
     .replace(/>\s+</g, '><') // remove whitespace between tags
