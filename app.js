@@ -6,7 +6,8 @@ const CONFIG = {
     postTypes: [
         { type: 'posts', label: 'المقالات', icon: 'file-text' },
         { type: 'answers', label: 'إجابات', icon: 'message-circle' }
-    ]
+    ],
+    readerMode: true // Set to true to allow user customization
 };
 
 const app = document.getElementById('app');
@@ -19,6 +20,7 @@ const siteTaglineEl = document.getElementById('site-tagline');
 const toggleDarkBtn = document.getElementById('toggle-dark');
 const darkIcon = document.getElementById('dark-icon');
 const darkLabel = document.getElementById('dark-label');
+const settingsBtn = document.getElementById('settings-btn');
 
 const ICON_PATHS = {
     'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />',
@@ -35,7 +37,8 @@ const ICON_PATHS = {
     'file': '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" />',
     'moon': '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
     'sun': '<circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />',
-    'github': '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" />'
+    'github': '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" />',
+    'settings': '<circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1V15a2 2 0 0 1-2-2 2 2 0 0 1 2-2v-.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2v.09a1.65 1.65 0 0 0-1.51 1z" />'
 };
 
 const initIcons = () => {
@@ -106,11 +109,18 @@ const router = async () => {
     state.params = { id: route.id };
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Reset pagination on route change
     state.page = 1;
     state.hasMore = true;
 
+    // Update nav active classes
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
+    // Special static routes
+    if (route.type === 'settings') {
+        renderSettings();
+        return;
+    }
     if (route.type === 'about') {
         renderAbout();
         return;
@@ -137,8 +147,17 @@ function applySiteMeta() {
     siteTaglineEl.textContent = CONFIG.siteTagline;
 
     // Update SEO Meta Tags
-    document.getElementById('seo-title').textContent = `${CONFIG.siteName} | ${CONFIG.siteTagline}`;
-    document.getElementById('seo-description').setAttribute('content', CONFIG.siteTagline);
+    const seoTitle = document.getElementById('seo-title');
+    const seoDesc = document.getElementById('seo-description');
+    if (seoTitle) seoTitle.textContent = `${CONFIG.siteName} | ${CONFIG.siteTagline}`;
+    if (seoDesc) seoDesc.setAttribute('content', CONFIG.siteTagline);
+
+    // Reader mode button
+    if (CONFIG.readerMode) {
+        settingsBtn?.classList.remove('hidden');
+    } else {
+        settingsBtn?.classList.add('hidden');
+    }
 }
 
 async function fetchPosts(queryOptions = {}, customPostType = 'posts') {
@@ -235,6 +254,66 @@ function renderAbout() {
     initIcons();
 }
 
+function renderSettings() {
+    app.innerHTML = `
+        <article class="max-w-2xl mx-auto">
+            <h1 class="text-5xl font-black tracking-tighter mb-10">إعدادات القارئ</h1>
+            <div class="space-y-8">
+                <div class="space-y-3">
+                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">رابط الـ API (V2)</label>
+                    <input type="text" id="set-url" value="${CONFIG.v2Url}" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono text-sm focus:ring-2 ring-primary/20 outline-none transition-all">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">اسم الموقع</label>
+                        <input type="text" id="set-name" value="${CONFIG.siteName}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
+                    </div>
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">الوصف</label>
+                        <input type="text" id="set-tagline" value="${CONFIG.siteTagline}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">عدد النتائج (لكل صفحة)</label>
+                    <input type="number" id="set-perpage" value="${CONFIG.perPage}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none">
+                </div>
+                <div class="space-y-3">
+                    <label class="text-sm font-bold uppercase tracking-widest text-muted-foreground">أنواع المحتوى (JSON Array)</label>
+                    <textarea id="set-posttypes" rows="5" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono text-sm outline-none">${JSON.stringify(CONFIG.postTypes, null, 2)}</textarea>
+                </div>
+                <button id="save-settings" class="w-full bg-primary text-primary-foreground p-5 rounded-xl font-bold text-lg hover:shadow-lg transition-all">حفظ الإعدادات</button>
+            </div>
+            <p id="save-msg" class="mt-4 text-center text-sm font-bold text-green-500 hidden">تم الحفظ! سيتم إعادة تحميل الصفحة...</p>
+        </article>
+    `;
+
+    document.getElementById('save-settings').addEventListener('click', () => {
+        const newConfig = {
+            v2Url: document.getElementById('set-url').value,
+            siteName: document.getElementById('set-name').value,
+            siteTagline: document.getElementById('set-tagline').value,
+            perPage: parseInt(document.getElementById('set-perpage').value),
+            postTypes: JSON.parse(document.getElementById('set-posttypes').value)
+        };
+        localStorage.setItem('userConfig', JSON.stringify(newConfig));
+        document.getElementById('save-msg').classList.remove('hidden');
+        setTimeout(() => window.location.reload(), 1500);
+    });
+}
+
+function loadConfig() {
+    const saved = localStorage.getItem('userConfig');
+    if (saved) {
+        try {
+            const userConfig = JSON.parse(saved);
+            Object.assign(CONFIG, userConfig);
+        } catch (e) {
+            console.error('Failed to load user config');
+        }
+    }
+}
+
+loadConfig(); // Load user overrides before anything else
 window.addEventListener('hashchange', router);
 updateMinimalUI();
 updateDarkUI();
