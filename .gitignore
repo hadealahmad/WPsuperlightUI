@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+.npm
+.bun
+
+# IDEs
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.log
+
+# Build Outputs (If applicable)
+# we keep dist.css as it's the target file for static deployments
