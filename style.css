@@ -1,4 +1,4 @@
-/* Shadcn-inspired CSS Variables (Zinc theme) */
+/* Shadcn-inspired CSS Variables */
 :root {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -20,8 +20,6 @@
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.5rem;
-
-  /* Highlight colors from example */
   --highlight-start: #fffc85;
   --highlight-end: #ffdab9;
 }
@@ -53,15 +51,17 @@
 ::after,
 ::before {
   box-sizing: border-box;
-  border: 0 solid hsl(var(--border));
+  border: 0 solid hsl(var(--border) / 1);
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   tab-size: 4;
   font-family: Noto Sans Arabic UI, system-ui;
+  height: 100%;
 }
 
 body {
@@ -69,8 +69,7 @@ body {
   color: hsl(var(--foreground));
   font-family: Noto Sans Arabic UI, Calibri, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  line-height: 1.6;
+  min-height: 100%;
 }
 
 audio,
@@ -107,45 +106,51 @@ a {
   text-decoration: inherit;
 }
 
+/* Tailwind Engine Initialization */
+@tailwind base;
 @tailwind utilities;
 
-/* Plain CSS replacements for base layer */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: bold;
-  letter-spacing: -0.025em;
-  color: hsl(var(--foreground));
-  line-height: 1.2;
+@layer base {
+  body {
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: bold;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+  }
 }
 
-p {
-  margin-bottom: 1.5rem;
-  text-align: justify;
-}
-
-/* Post Content Styles (Standard Typography) */
+/* Post Content Styles */
 .prose {
-  @apply max-w-none mx-auto;
+  max-width: none;
 }
 
 .prose h1 {
-  @apply text-4xl md:text-5xl font-bold mb-10 text-foreground tracking-tighter;
+  @apply text-4xl md:text-5xl font-bold mb-10 tracking-tighter;
 }
 
 .prose h2 {
-  @apply text-2xl md:text-3xl font-bold mt-16 mb-6 text-foreground border-b pb-3;
+  @apply text-2xl md:text-3xl font-bold mt-16 mb-6 border-b pb-3;
 }
 
 .prose h3 {
-  @apply text-xl font-bold mt-10 mb-4 text-foreground;
+  @apply text-xl font-bold mt-10 mb-4;
 }
 
 .prose p {
-  @apply mb-8 leading-relaxed text-foreground/90 text-lg md:text-xl;
+  @apply mb-8 text-lg md:text-xl leading-relaxed text-foreground/90;
 }
 
 .prose img {
@@ -153,19 +158,24 @@ p {
 }
 
 .prose a {
-  @apply text-primary underline underline-offset-4 font-medium decoration-primary/30 hover:decoration-primary;
+  @apply text-primary font-medium underline underline-offset-4 decoration-primary/30 hover:decoration-primary;
 }
 
 .prose blockquote {
-  @apply border-s-4 border-primary/20 ps-8 my-10 italic text-muted-foreground bg-muted/30 py-6 rounded-e-xl;
+  @apply ps-8 my-10 italic border-s-4 border-primary/20 bg-muted/30 py-6 rounded-e-xl text-muted-foreground;
+}
+
+.prose ul,
+.prose ol {
+  @apply ps-10 mb-8 space-y-4 text-lg;
 }
 
 .prose ul {
-  @apply list-disc ps-10 mb-8 space-y-4 text-lg;
+  list-style-type: disc;
 }
 
 .prose ol {
-  @apply list-decimal ps-10 mb-8 space-y-4 text-lg;
+  list-style-type: decimal;
 }
 
 .prose li {
@@ -180,7 +190,12 @@ p {
   @apply bg-muted px-2 py-1 rounded text-sm font-mono border;
 }
 
-/* Highlight Gradient Effect */
+/* RTL Fixes */
+[dir="rtl"] .prose blockquote {
+  @apply ps-0 pe-8 border-s-0 border-e-4 rounded-e-none rounded-s-xl;
+}
+
+/* Highlight Gradient */
 .highlight-gradient {
   background-image: linear-gradient(to bottom, var(--highlight-start), var(--highlight-end));
   background-size: 100% 100%;
@@ -193,27 +208,12 @@ p {
   color: black;
 }
 
-/* Sidebar Nav Item Active State */
+/* Sidebar Active State */
 .nav-item.active {
   @apply bg-secondary text-foreground font-bold;
 }
 
-/* RTL Customizations for Blockquotes */
-[dir="rtl"] .prose blockquote {
-  @apply border-s-0 border-e-4 ps-0 pe-8 rounded-e-none rounded-s-xl;
-}
-
-
-/* Minimal Mode Refinements */
-body.minimal-mode .post-card {
-  @apply border-dashed;
-}
-
-body.minimal-mode .post-card img {
-  @apply hidden;
-}
-
-/* Scrollbar */
+/* Scrollbar Style */
 ::-webkit-scrollbar {
   width: 10px;
 }

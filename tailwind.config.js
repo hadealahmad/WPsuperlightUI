@@ -56,23 +56,6 @@ module.exports = {
     },
     plugins: [],
     corePlugins: {
-        preflight: false,
-        float: false,
-        objectPosition: false,
-        fontVariantNumeric: false,
-        touchAction: false,
-        sepia: false,
-        grayscale: false,
-        invert: false,
-        blur: false,
-        backdropBlur: false,
-        backdropBrightness: false,
-        backdropContrast: false,
-        backdropGrayscale: false,
-        backdropHueRotate: false,
-        backdropInvert: false,
-        backdropOpacity: false,
-        backdropSaturate: false,
-        backdropSepia: false,
-    },
+        preflight: false, // Keep the reset out
+    }
 }

@@ -71,9 +71,10 @@ const router = async () => {
 
     if (type === 'settings') return renderSettings();
     if (type === 'about') return renderAbout();
+    if (type === 'category') return renderArchive({ categories: id }, 'posts');
 
     const pt = CONFIG.postTypes.find(t => t.type === type)?.type || 'posts';
-    id ? await renderSingle(id, pt) : await renderArchive(type === 'category' ? { categories: id } : {}, pt);
+    (id && type === pt) ? await renderSingle(id, pt) : await renderArchive({}, pt);
 };
 
 const renderArchive = async (opts, pt, append = false) => {
