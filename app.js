@@ -105,7 +105,7 @@ const renderArchive = async (opts, pt, append = false) => {
                 </h2>
             </header>
             <div class="content">
-                ${!state.minimal && p.jetpack_featured_media_url && !state.simple ? `<div class="mb-8 rounded-xl overflow-hidden border shadow-sm aspect-video bg-muted"><img src="${p.jetpack_featured_media_url}" class="w-full h-full object-cover" loading="lazy"></div>` : ''}
+                ${!state.minimal && p.jetpack_featured_media_url && !state.simple ? `<img src="${p.jetpack_featured_media_url}" class="w-full mb-8" loading="lazy">` : ''}
                 ${!state.simple && p.excerpt ? `
                     <div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${p.excerpt.rendered}</div>
                     <a href="#${pt}/${p.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a>
@@ -145,7 +145,7 @@ const renderSingle = async (id, pt) => {
                     <span>${p._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span>
                 </div>
             </header>
-            ${img ? `<div class="mb-12 rounded-2xl overflow-hidden border shadow-xl bg-muted aspect-video md:aspect-[21/9]"><img src="${img}" class="w-full h-full object-cover"></div>` : ''}
+            ${img ? `<img src="${img}" class="w-full mb-12">` : ''}
             <div class="prose dark:prose-invert">${p.content.rendered}</div>
         </article>`;
     initIcons();
