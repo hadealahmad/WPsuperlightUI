@@ -4,10 +4,11 @@
   "description": "Superlight RTL-friendly Shadcn-style WP Wrapper",
   "main": "app.js",
   "scripts": {
-    "dev": "bun x http-server . -p 8000",
+    "dev": "bun x http-server . -p 8000 --index dev-index.html",
     "build:css": "tailwindcss -i ./style.css -o ./dist.css --minify",
     "build:js": "bun build ./app.js --outfile=app.min.js --minify",
-    "build": "bun run build:css && bun run build:js"
+    "build:html": "bun run build.js",
+    "build": "bun run build:css && bun run build:js && bun run build:html"
   },
   "keywords": [],
   "author": "",

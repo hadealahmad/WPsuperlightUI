@@ -16,30 +16,31 @@
 - دعم أنواع المنشورات المخصصة (CPTs).
 - نظام ترقيم صفحات (Pagination) يعتمد على التحميل التدريجي (Load More).
 - **وضع القارئ (Reader Mode)**: ميزة اختيارية تسمح للمستخدم بتغيير رابط الـ API وإعدادات الموقع يدوياً من داخل الواجهة، مع حفظ الإعدادات في المتصفح.
+- **تحميل ملف واحد (Zero Dependencies)**: يتم دمج كافة ملفات CSS و JS داخل ملف HTML واحد عند البناء لتقليل طلبات الشبكة.
 
 ## التطوير (Development)
 يتطلب المشروع وجود [Bun](https://bun.sh) أو [Node.js] لبناء ملفات التنسيق:
 
 1. قم بتثبيت التبعات (Dependencies):
    ```bash
-   npm install
+   bun install
    ```
 
-2. تشغيل بناء Tailwind في وضع المراقبة (Watch Mode):
+2. تشغيل الموقع في وضع التطوير (Development):
    ```bash
-   bunx tailwindcss -i ./style.css -o ./dist.css --watch
+   bun run dev
    ```
+   *يعمل هذا الوضع على ملف `dev-index.html` ويقوم بتحميل `app.js` و `dist.css` كملفات منفصلة لتسهيل التجربة.*
 
-3. تشغيل خادم محلي للمعالجة:
+3. بناء النسخة النهائية (Build for Production):
    ```bash
-   python3 -m http.server 8000
+   bun run build
    ```
+   *يقوم هذا الأمر بضغط الأكواد ودمجها بالكامل داخل ملف `index.html` واحد.*
 
 ## النشر (Deployment)
-المشروع عبارة عن ملفات ثابتة (Static Files). للنشر، تحتاج فقط لرفع الملفات التالية إلى أي خادم أو خدمة استضافة (مثل GitHub Pages أو Netlify):
-- `index.html`
-- `app.js`
-- `dist.css`
+المشروع مصمم ليعمل كملف واحد (Static File). للنشر، تحتاج فقط لرفع ملف واحد:
+- `index.html` (الملف الناتج من عملية البناء `bun run build`)
 
 تأكد من تحديث رابط الـ API في كائن `CONFIG` داخل ملف `app.js`.
 
