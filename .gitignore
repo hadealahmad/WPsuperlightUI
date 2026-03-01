@@ -14,3 +14,4 @@ Thumbs.db
 
 # Build Outputs (If applicable)
 # we keep dist.css as it's the target file for static deployments
+writeup.md
