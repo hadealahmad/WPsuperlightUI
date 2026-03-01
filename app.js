@@ -184,12 +184,6 @@ async function fetchCategories() {
     } catch (e) { return []; }
 }
 
-async function renderSidebars() {
-    mainNav.innerHTML = CONFIG.postTypes.map(pt => `<li><a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent hover:text-accent-foreground group"><i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i><span>${pt.label}</span></a></li>`).join('');
-    const cats = await fetchCategories();
-    dynamicNav.innerHTML = cats.map(cat => `<a href="#category/${cat.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group"><span>${cat.name}</span><span class="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">${cat.count}</span></a>`).join('');
-    initIcons();
-}
 
 async function fetchSingle(id, postType = 'posts') {
     try {
@@ -313,10 +307,41 @@ function loadConfig() {
     }
 }
 
-loadConfig(); // Load user overrides before anything else
-window.addEventListener('hashchange', router);
-updateMinimalUI();
-updateDarkUI();
-applySiteMeta();
-renderSidebars();
-router();
+// --- Initialization Sequence (Priority Order) ---
+function init() {
+    loadConfig();      // 1. Load overrides
+    applySiteMeta();   // 2. Apply branding/SEO from Config
+    updateMinimalUI(); // 3. Set UI state (Images)
+    updateDarkUI();    // 4. Set UI state (Dark)
+
+    // 5. Render static UI from Config (Post Types)
+    mainNav.innerHTML = CONFIG.postTypes.map(pt => `
+        <li>
+            <a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent hover:text-accent-foreground group">
+                <i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i>
+                <span>${pt.label}</span>
+            </a>
+        </li>
+    `).join('');
+
+    initIcons(); // 6. Initialize all icons rendered so far
+
+    // 7. Setup listeners and start async fetches
+    window.addEventListener('hashchange', router);
+    renderDynamicSidebar(); // Fetch categories in background
+    router();               // Start routing/content fetch
+}
+
+async function renderDynamicSidebar() {
+    const cats = await fetchCategories();
+    dynamicNav.innerHTML = cats.map(cat => `
+        <a href="#category/${cat.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group">
+            <span>${cat.name}</span>
+            <span class="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">${cat.count}</span>
+        </a>
+    `).join('');
+    initIcons(); // Initialize icons for new categories if any
+}
+
+// Start the engine
+init();
