@@ -48,35 +48,83 @@
   --ring: 240 4.9% 83.9%;
 }
 
-@tailwind base;
-@tailwind components;
+/* Minimal Reset (Replacing 3KB Preflight) */
+*,
+::after,
+::before {
+  box-sizing: border-box;
+  border: 0 solid hsl(var(--border));
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  font-family: Noto Sans Arabic UI, system-ui;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: Noto Sans Arabic UI, Calibri, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+audio,
+canvas,
+embed,
+iframe,
+img,
+object,
+svg,
+video {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  appearance: none;
+  background: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
 @tailwind utilities;
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+/* Plain CSS replacements for base layer */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+  letter-spacing: -0.025em;
+  color: hsl(var(--foreground));
+  line-height: 1.2;
+}
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
-    line-height: 1.6;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-bold tracking-tight text-foreground;
-    line-height: 1.2;
-  }
-
-  p {
-    @apply mb-6;
-    text-align: justify;
-    hyphens: auto;
-  }
+p {
+  margin-bottom: 1.5rem;
+  text-align: justify;
 }
 
 /* Post Content Styles (Standard Typography) */
