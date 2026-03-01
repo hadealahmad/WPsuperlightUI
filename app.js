@@ -20,7 +20,7 @@ const state = {
 
 const ICON_PATHS = {
     'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />',
-    'home': '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />',
+    'home': '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />',
     'info': '<circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="16" y2="12" /><line x1="12" x2="12.01" y1="8" y2="8" />',
     'image': '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
     'image-off': '<line x1="2" x2="22" y1="2" y2="22" /><path d="M10.41 10.41a2 2 0 1 1-2.82-2.82" /><line x1="21" x2="21" y1="10" y2="10" /><path d="M21 15V5a2 2 0 0 0-2-2H9" /><path d="m9 9 5 5" /><rect width="18" height="18" x="3" y="3" rx="2" />',
@@ -86,32 +86,32 @@ const renderArchive = async (opts, pt, append = false) => {
     if (!append) {
         state.page = 1;
         const skeleton = state.simple
-            ? '<div class="space-y-4"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-8 w-full bg-muted rounded"></div></div>'
-            : '<div class="space-y-6"><div class="h-4 w-1/4 bg-muted rounded"></div><div class="h-12 w-full bg-muted rounded"></div><div class="h-64 w-full bg-muted rounded-xl"></div></div>';
-        $('app').innerHTML = `<div class="${state.simple ? 'space-y-12' : 'space-y-20'}">${Array(3).fill(skeleton).join('')}</div>`;
+            ? '<div class="post-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-heading" style="height: 2rem;"></div></div>'
+            : '<div class="post-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-heading"></div><div class="skeleton skeleton-img"></div></div>';
+        $('app').innerHTML = `<div class="article-list ${state.simple ? 'simple' : ''}">${Array(3).fill(skeleton).join('')}</div>`;
     }
     const posts = await wp(pt, { ...opts, page: state.page, _fields: 'id,date,title,excerpt,categories,jetpack_featured_media_url' });
-    if (!append && !posts?.length) return $('app').innerHTML = '<div class="py-20 text-center"><h2 class="text-2xl font-bold">لا توجد مقالات</h2></div>';
+    if (!append && !posts?.length) return $('app').innerHTML = '<div class="flex-center" style="padding: 5rem 0;"><h2 class="post-title" style="font-size: 1.5rem;">لا توجد مقالات</h2></div>';
 
     const html = posts.map(p => `
-        <article class="post ${state.simple ? 'mb-8' : 'mb-20'}">
-            <header class="${state.simple ? 'mb-2' : 'mb-4'}">
-                <div class="flex items-center gap-4 text-xs font-semibold text-muted-foreground mb-3 tracking-widest uppercase">
+        <article class="post-card">
+            <header>
+                <div class="post-meta">
                     <time>${fmtDate(p.date)}</time>
                     ${state.cats[p.categories?.[0]] ? `<span>•</span><span>${state.cats[p.categories[0]]}</span>` : ''}
                 </div>
-                <h2 class="${state.simple ? 'text-xl' : 'text-3xl'} font-black tracking-tighter leading-tight ${state.simple ? 'mb-2' : 'mb-6'}">
-                    <a href="#${pt}/${p.id}" class="hover:underline underline-offset-8 decoration-primary/20 hover:decoration-primary transition-all">${p.title.rendered}</a>
+                <h2 class="post-title" style="${state.simple ? 'font-size: 1.25rem; margin-bottom: 0.5rem;' : ''}">
+                    <a href="#${pt}/${p.id}">${p.title.rendered}</a>
                 </h2>
             </header>
             <div class="content">
                 ${!state.minimal && p.jetpack_featured_media_url && !state.simple ? `<img src="${p.jetpack_featured_media_url}" class="w-full mb-8" loading="lazy">` : ''}
                 ${!state.simple && p.excerpt ? `
-                    <div class="text-lg md:text-xl text-foreground/80 leading-relaxed mb-8">${p.excerpt.rendered}</div>
-                    <a href="#${pt}/${p.id}" class="inline-flex items-center gap-2 text-sm font-bold text-primary group underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">متابعة القراءة<i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i></a>
+                    <div class="post-excerpt">${p.excerpt.rendered}</div>
+                    <a href="#${pt}/${p.id}" class="post-read-more">متابعة القراءة<i data-lucide="arrow-left" style="width: 1rem; height: 1rem;"></i></a>
                 ` : ''}
             </div>
-            <div class="w-20 h-px bg-border ${state.simple ? 'my-8' : 'my-12'}"></div>
+            <div class="separator"></div>
         </article>`).join('');
 
     if (append) {
@@ -122,50 +122,49 @@ const renderArchive = async (opts, pt, append = false) => {
     }
 
     if (state.hasMore) {
-        $('app').insertAdjacentHTML('beforeend', '<div id="load-more-container" class="py-10 flex justify-center"><button id="load-more-btn" class="px-8 py-3 rounded-full border border-border hover:bg-secondary transition-all font-bold text-sm">تحميل المزيد</button></div>');
+        $('app').insertAdjacentHTML('beforeend', '<div id="load-more-container" class="flex-center" style="padding: 2.5rem 0;"><button id="load-more-btn" style="padding: 0.75rem 2rem; border-radius: 9999px; border: 1px solid hsl(var(--border)); font-weight: 700; font-size: 0.875rem;">تحميل المزيد</button></div>');
         $('load-more-btn').onclick = () => { state.page++; renderArchive(opts, pt, true); };
+        initIcons();
     }
     initIcons();
 };
 
 const renderSingle = async (id, pt) => {
-    $('app').innerHTML = `<div class="space-y-10"><div class="h-8 w-32 bg-muted rounded-md mb-6"></div><div class="h-20 w-full bg-muted rounded-md"></div><div class="w-full aspect-video bg-muted rounded-2xl mt-12"></div></div>`;
+    $('app').innerHTML = `<div class="flex-col gap-4"><div class="skeleton" style="height: 2.5rem; width: 33%;"></div><div class="flex-col gap-4"><div class="skeleton" style="height: 30rem;"></div></div></div>`;
     const p = await wp(`${pt}/${id}`, { _embed: 1, _fields: 'id,date,title,content,categories,jetpack_featured_media_url,_embedded' });
-    if (!p) return $('app').innerHTML = '<div class="py-20 text-center"><h1 class="text-2xl font-bold">غير موجود</h1><a href="#" class="button mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-md inline-block">العودة</a></div>';
+    if (!p) return $('app').innerHTML = '<div class="flex-center" style="padding: 5rem 0;"><h1 class="post-title">غير موجود</h1><a href="#" class="post-read-more" style="margin-top: 1rem;">العودة</a></div>';
 
     const img = p._embedded?.['wp:featuredmedia']?.[0]?.source_url || p.jetpack_featured_media_url;
     $('app').innerHTML = `
-        <article class="max-w-none">
-            <header class="flex flex-col gap-6 mb-12">
-                <a href="#${pt}" class="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground group"><i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>العودة</a>
-                <h1 class="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] text-foreground">${p.title.rendered}</h1>
-                <div class="flex items-center gap-4 text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-widest border-b pb-8">
+        <article class="prose">
+            <header class="single-header">
+                <a href="#${pt}" class="back-btn"><i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i>العودة</a>
+                <h1 class="single-title">${p.title.rendered}</h1>
+                <div class="single-meta">
                     <time>${fmtDate(p.date)}</time>
                     <span>•</span>
                     <span>${p._embedded?.['wp:term']?.[0]?.[0]?.name || 'عام'}</span>
                 </div>
             </header>
-            ${img ? `<img src="${img}" class="w-full mb-12">` : ''}
-            <div class="prose dark:prose-invert">${p.content.rendered}</div>
+            ${img ? `<img src="${img}" class="w-full mb-12" style="border-radius: 1rem; border: 1px solid hsl(var(--border)); shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">` : ''}
+            <div class="content">${p.content.rendered}</div>
         </article>`;
     initIcons();
 };
 
-
-
 function renderSettings() {
-    $('app').innerHTML = `<article class="max-w-2xl mx-auto"><h1 class="text-5xl font-black tracking-tighter mb-10">إعدادات القارئ</h1><div class="space-y-8">
-        <div class="space-y-3"><label class="text-sm font-bold text-muted-foreground uppercase tracking-widest">رابط الـ API</label><input type="text" id="set-url" value="${CONFIG.v2Url}" class="w-full p-4 rounded-xl border bg-secondary/30 outline-none"></div>
-        <div class="grid md:grid-cols-2 gap-6"><input type="text" id="set-name" value="${CONFIG.siteName}" class="p-4 rounded-xl border bg-secondary/30"><input type="text" id="set-tagline" value="${CONFIG.siteTagline}" class="p-4 rounded-xl border bg-secondary/30"></div>
-        <input type="number" id="set-perpage" value="${CONFIG.perPage}" class="w-full p-4 rounded-xl border bg-secondary/30">
-        <textarea id="set-posttypes" rows="5" class="w-full p-4 rounded-xl border bg-secondary/30 font-mono">${JSON.stringify(CONFIG.postTypes, null, 2)}</textarea>
-        <button id="save-settings" class="w-full bg-primary text-primary-foreground p-5 rounded-xl font-bold text-lg hover:shadow-lg transition-all">حفظ</button>
-    </div><p id="save-msg" class="mt-4 text-center text-sm font-bold text-green-500 hidden">تم الحفظ!</p></article>`;
+    $('app').innerHTML = `<article style="max-width: 42rem; margin: 0 auto;"><h1 class="post-title" style="font-size: 3rem; margin-bottom: 2.5rem;">إعدادات القارئ</h1><div class="flex-col gap-8">
+        <div class="flex-col gap-2"><label style="font-size: 0.75rem; font-weight: 700; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.1em;">رابط الـ API</label><input type="text" id="set-url" value="${CONFIG.v2Url}" style="width: 100%; padding: 1rem; border-radius: 0.75rem; border: 1px solid hsl(var(--border)); background-color: hsl(var(--secondary)/30); outline: none;"></div>
+        <div class="page-wrapper" style="grid-template-cols: repeat(auto-fit, minmax(200px, 1fr)); padding: 0; gap: 1.5rem;"><input type="text" id="set-name" value="${CONFIG.siteName}" style="padding: 1rem; border-radius: 0.75rem; border: 1px solid hsl(var(--border)); background-color: hsl(var(--secondary)/30);"><input type="text" id="set-tagline" value="${CONFIG.siteTagline}" style="padding: 1rem; border-radius: 0.75rem; border: 1px solid hsl(var(--border)); background-color: hsl(var(--secondary)/30);"></div>
+        <input type="number" id="set-perpage" value="${CONFIG.perPage}" style="width: 100%; padding: 1rem; border-radius: 0.75rem; border: 1px solid hsl(var(--border)); background-color: hsl(var(--secondary)/30);">
+        <textarea id="set-posttypes" rows="5" style="width: 100%; padding: 1rem; border-radius: 0.75rem; border: 1px solid hsl(var(--border)); background-color: hsl(var(--secondary)/30); font-family: monospace;">${JSON.stringify(CONFIG.postTypes, null, 2)}</textarea>
+        <button id="save-settings" style="width: 100%; background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 1.25rem; border-radius: 0.75rem; font-weight: 700; font-size: 1.125rem;">حفظ</button>
+    </div><p id="save-msg" style="margin-top: 1rem; text-align: center; font-size: 0.875rem; font-weight: 700; color: #22c55e; display: none;">تم الحفظ!</p></article>`;
 
     $('save-settings').onclick = () => {
         const conf = { v2Url: $('set-url').value, siteName: $('set-name').value, siteTagline: $('set-tagline').value, perPage: parseInt($('set-perpage').value), postTypes: JSON.parse($('set-posttypes').value) };
         localStorage.setItem('userConfig', JSON.stringify(conf));
-        $('save-msg').classList.remove('hidden');
+        $('save-msg').style.display = 'block';
         setTimeout(() => location.reload(), 1000);
     };
 }
@@ -176,13 +175,13 @@ const init = async () => {
 
     $('site-title').textContent = CONFIG.siteName;
     $('site-tagline').textContent = CONFIG.siteTagline;
-    $('settings-btn')?.classList.toggle('hidden', !CONFIG.readerMode);
+    $('settings-btn')?.style.setProperty('display', CONFIG.readerMode ? 'flex' : 'none');
 
     const seoTitle = $('seo-title'), seoDesc = $('seo-description');
     if (seoTitle) seoTitle.textContent = `${CONFIG.siteName} | ${CONFIG.siteTagline}`;
     if (seoDesc) seoDesc.content = CONFIG.siteTagline;
 
-    $('main-nav').innerHTML = CONFIG.postTypes.map(pt => `<li><a href="#${pt.type}" class="nav-item flex items-center gap-3 p-2.5 rounded-md transition-all hover:bg-accent group"><i data-lucide="${pt.icon}" class="w-4 h-4 text-muted-foreground group-hover:text-primary"></i><span>${pt.label}</span></a></li>`).join('');
+    $('main-nav').innerHTML = CONFIG.postTypes.map(pt => `<li><a href="#${pt.type}" class="nav-item flex-center group" style="justify-content: flex-start;"><i data-lucide="${pt.icon}"></i><span>${pt.label}</span></a></li>`).join('');
 
     $('toggle-minimal').onclick = () => { state.minimal = !state.minimal; localStorage.minimalMode = state.minimal; syncUI(); router(); };
     $('toggle-text').onclick = () => { state.simple = !state.simple; localStorage.simpleMode = state.simple; syncUI(); router(); };
@@ -191,7 +190,7 @@ const init = async () => {
     const cats = await wp('categories', { per_page: 20, hide_empty: true, _fields: 'id,name,count' });
     if (cats) {
         cats.forEach(c => state.cats[c.id] = c.name);
-        $('dynamic-nav').innerHTML = cats.map(c => `<li><a href="#category/${c.id}" class="nav-item flex items-center justify-between gap-3 p-2 rounded-md transition-all hover:bg-accent text-xs font-semibold group"><span>${c.name}</span><span class="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">${c.count}</span></a></li>`).join('');
+        $('dynamic-nav').innerHTML = cats.map(c => `<li><a href="#category/${c.id}" class="nav-item flex-center" style="justify-content: space-between; font-size: 0.75rem; font-weight: 600;"><span>${c.name}</span><span style="font-size: 10px; background-color: hsl(var(--secondary)); px: 0.4rem; padding: 0.1rem 0.4rem; border-radius: 9999px;">${c.count}</span></a></li>`).join('');
     }
 
     syncUI();
