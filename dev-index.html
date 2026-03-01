@@ -11,24 +11,20 @@
 
 <body>
 
-    <div class="page-wrapper">
+    <div class="page-container">
 
         <!-- Sidebar -->
         <aside class="sidebar">
 
             <!-- Branding -->
-            <div class="flex-col gap-4">
-                <div class="flex-center gap-4 cursor-pointer" onclick="window.location.hash='#'"
-                    style="justify-content: flex-start;">
-                    <div>
-                        <h1 id="site-title" class="post-title" style="font-size: 1.25rem; margin-bottom: 0;"></h1>
-                        <span id="site-tagline"
-                            style="font-size: 10px; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; line-height: 1.2; display: block;"></span>
-                    </div>
+            <div class="flex-col gap-4 items-start">
+                <div class="site-branding" onclick="window.location.hash='#'">
+                    <h1 id="site-title" class="site-title"></h1>
+                    <span id="site-tagline" class="site-tagline"></span>
                 </div>
 
                 <!-- Control Toggles -->
-                <div class="flex-center gap-2" style="justify-content: flex-start;">
+                <div class="flex items-center gap-2">
                     <button id="toggle-minimal" title="الصور" class="btn-icon">
                         <i data-lucide="image" id="minimal-icon"></i>
                     </button>
@@ -46,22 +42,19 @@
             </div>
 
             <!-- Navigation -->
-            <nav style="flex: 1;">
-                <ul id="main-nav" class="flex-col gap-2">
+            <nav class="flex-1">
+                <ul id="main-nav" class="nav-list">
                     <!-- Skeletons for main navigation -->
-                    <div class="skeleton" style="height: 40px; margin-bottom: 4px;"></div>
-                    <div class="skeleton" style="height: 40px; margin-bottom: 4px;"></div>
+                    <li class="skeleton" style="height: 40px; width: 100%;"></li>
+                    <li class="skeleton" style="height: 40px; width: 100%;"></li>
                 </ul>
 
-                <div class="flex-col gap-2" style="margin-top: 1rem;">
-                    <span
-                        style="padding: 0.4rem 0.6rem; font-size: 10px; font-weight: 700; color: hsl(var(--muted-foreground)); text-transform: uppercase;">
-                        التصنيفات
-                    </span>
-                    <ul id="dynamic-nav" class="flex-col gap-2">
-                        <li class="skeleton" style="height: 32px; margin-bottom: 4px;"></li>
-                        <li class="skeleton" style="height: 32px; margin-bottom: 4px;"></li>
-                        <li class="skeleton" style="height: 32px; margin-bottom: 4px;"></li>
+                <div class="flex-col gap-2" style="margin-top: 1.5rem;">
+                    <span class="site-tagline" style="padding: 0 0.75rem; margin-bottom: 0.25rem;">التصنيفات</span>
+                    <ul id="dynamic-nav" class="nav-list">
+                        <li class="skeleton" style="height: 32px; width: 100%;"></li>
+                        <li class="skeleton" style="height: 32px; width: 100%;"></li>
+                        <li class="skeleton" style="height: 32px; width: 100%;"></li>
                     </ul>
                 </div>
             </nav>
@@ -69,14 +62,15 @@
             <!-- Bottom Actions -->
             <div class="flex-col gap-4"
                 style="margin-top: auto; padding-top: 1.5rem; border-top: 1px dashed hsl(var(--border));">
-                <div style="font-size: 10px; color: hsl(var(--muted-foreground)); line-height: 1.6;">
+                <div style="font-size: 11px; color: hsl(var(--muted-foreground)); line-height: 1.6;">
                     <p>واجهة ووردبريس مفصولة فائقة الخفّة من <a href="https://hadealahmad.com" target="_blank"
-                            style="font-weight: 700; color: hsl(var(--foreground)); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: hsl(var(--primary)/20);">هادي
+                            style="font-weight: 800; color: hsl(var(--foreground)); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: hsl(var(--primary)/20);">هادي
                             الأحمد</a></p>
                 </div>
 
-                <a href="https://github.com/hadealahmad/WPsuperlightUI" target="_blank" class="nav-item active"
-                    style="justify-content: center; font-size: 0.75rem;">
+                <a href="https://github.com/hadealahmad/WPsuperlightUI" target="_blank"
+                    class="nav-link active justify-content-center"
+                    style="justify-content: center; font-size: 0.8rem; background-color: transparent; border: 1px solid hsl(var(--border));">
                     <i data-lucide="github"></i>
                     <span>حول المشروع</span>
                 </a>
@@ -86,11 +80,11 @@
         <!-- Main Workspace -->
         <main id="app" class="main-content">
             <!-- Dynamic Content -->
-            <div id="loading" class="flex-col gap-4">
-                <div class="skeleton" style="height: 2.5rem; width: 33%;"></div>
-                <div class="flex-col gap-4">
-                    <div class="skeleton" style="height: 16rem;"></div>
-                    <div class="skeleton" style="height: 16rem;"></div>
+            <div id="loading" class="flex-col gap-6">
+                <div class="skeleton" style="height: 3rem; width: 40%;"></div>
+                <div class="flex-col gap-8">
+                    <div class="skeleton" style="height: 20rem; width: 100%;"></div>
+                    <div class="skeleton" style="height: 20rem; width: 100%;"></div>
                 </div>
             </div>
         </main>
